@@ -1,13 +1,14 @@
 import argparse
 import datetime
 import sqlite3
+from getpass import getpass
 from os import remove, path, rename
 from random import randrange
-from pyperclip import copy
-from Crypto.Hash import SHA256
-from Crypto.Cipher import AES
+
 from Crypto import Random
-from getpass import getpass
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
+from pyperclip import copy
 
 
 def encrypt_database(database_name, password):
@@ -90,7 +91,8 @@ def generate_password(length):
 def save_password(service, password, user, db_name):
     connection, cursor = connect(db_name)
     date = str(datetime.date.today())
-    cursor.execute(f"INSERT INTO pwd_table(password, service, username, data) VALUES('{password}', '{service}', '{user}', '{date}')")
+    cursor.execute(
+        f"INSERT INTO pwd_table(password, service, username, data) VALUES('{password}', '{service}', '{user}', '{date}')")
     cursor.commit()
     connection.close()
 
@@ -126,9 +128,6 @@ def main():
     group.add_argument("-init", "--initialize", help="Initializes a new database encrypted with the"
                                                      "entered password (type it twice)", nargs=2, type=str)
     args = parser.parse_args()
-    if path.exists(key_file) is False and args.initialize is False:
-        print("Please initialize a new database")
-        return
     if args.initialize:
         key_file_exists = path.exists(key_file)
         if key_file_exists:
@@ -153,6 +152,9 @@ def main():
             print("New master-key set")
             print("Encrypting database")
             encrypt_database(db_name, db_password)
+    elif path.exists(key_file) is False:
+        print("Please initialize a new database")
+        return
     elif args.list:
         password = getpass("Insert master password: ")
         if check_master_password(password, key_file) is False:
