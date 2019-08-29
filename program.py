@@ -11,20 +11,22 @@ def copy_to_clipboard(password):
 
 
 def print_data(data):
-    print("ID\tPASSWORD\tSERVICE\tUSERNAME\tCREATION DATE\n")
+    print("ID\tPASSWORD\tSERVICE\tUSERNAME\tCREATION DATE\n".expandtabs(20))
     for row in data:
+        entry = ""
         for word in row:
-            print(word, end="\t")
-        print()
+            entry += str(word) + "\t"
+        print(entry.expandtabs(20))
     print()
 
 
 def generate_password(length):
-    for i in range(length):
+    i = 0
+    while i < length:
         rnd = randrange(33, 126)
         if rnd == 96 or rnd == 39 or rnd == 34:
-            i -= 1
             continue
+        i += 1
         yield chr(rnd)
 
 
@@ -72,9 +74,9 @@ def main():
     elif args.retrieve:
         service_path = False
         cursor, connection = connect(db_name)
-        try:
+        if str(args.retrieve[0]).isdigit() is True:
             id_num = int(args.retrieve[0])
-        except ValueError:
+        else:
             service_name = args.retrieve[0]
             service_path = True
         try:
@@ -92,7 +94,10 @@ def main():
         else:
             data2 = cursor.execute(f"SELECT password FROM pwd_table WHERE id={id_num}")
         password = data2.fetchall()
-        copy_to_clipboard(password[0][0])
+        try:
+            copy_to_clipboard(password[0][0])
+        except IndexError:
+            print("IndexError, db is probably empty or the wrong id#/service was entered")
         connection.close()
     if args.new:
         service = args.new[0]
@@ -122,9 +127,9 @@ def main():
     if args.delete:
         service_path = False
         cursor, connection = connect(db_name)
-        try:
+        if str(args.delete[0]).isdigit() is True:
             id_num = int(args.delete[0])
-        except ValueError:
+        else:
             service_name = args.delete[0]
             service_path = True
         try:
